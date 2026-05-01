@@ -123,20 +123,20 @@ const SectionBar = ({label,score,status,locked}) => {
   const color = status==="good"?"#4caf50":status==="average"?C.amber:"#e57373";
   return (
     <div style={{marginBottom:"12px"}}>
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:"5px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"5px"}}>
         <span style={{fontSize:"13px",color:C.ink,fontWeight:500,textTransform:"capitalize"}}>{label}</span>
-        <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
-          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color,letterSpacing:"0.06em"}}>
-            {status==="good"?"Good":status==="average"?"Average":"Needs work"}
-          </span>
-          {locked
-            ? <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"11px",color:C.border,filter:"blur(4px)"}}>??</span>
-            : <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"11px",color}}>{score}</span>
-          }
-        </div>
+        {locked
+          ? <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.border,letterSpacing:"0.06em",filter:"blur(5px)",userSelect:"none"}}>Locked</span>
+          : <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color,letterSpacing:"0.06em"}}>
+                {status==="good"?"Good":status==="average"?"Average":"Needs work"}
+              </span>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"11px",color}}>{score}</span>
+            </div>
+        }
       </div>
       <div style={{height:"6px",background:C.border,borderRadius:"3px",overflow:"hidden"}}>
-        <div style={{height:"100%",width:locked?"40%":`${score}%`,background:color,borderRadius:"3px",filter:locked?"blur(4px)":"none",transition:"width .9s ease"}}/>
+        <div style={{height:"100%",width:locked?"35%":`${score}%`,background:locked?C.border:color,borderRadius:"3px",filter:locked?"blur(5px)":"none",transition:"width .9s ease"}}/>
       </div>
     </div>
   );
