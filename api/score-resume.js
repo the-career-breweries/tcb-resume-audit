@@ -12,42 +12,88 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: "API key not configured" });
 
   const jdCtx = hasJd && jobDescription
-    ? `Role: ${jobTitle || "Not specified"} at ${company || "Not specified"}. JD (first 400 chars): ${jobDescription.substring(0, 400)}`
-    : "No specific JD provided — evaluate against general ATS best practices.";
+    ? `Role: ${jobTitle || "Not specified"} at ${company || "Not specified"}.\nJD excerpt: ${jobDescription.substring(0, 500)}`
+    : "No specific JD — evaluate against general ATS best practices.";
 
-  const prompt = `You are an ATS expert. Quickly evaluate this resume for ATS compatibility.
+  const prompt = `You are an ATS expert. Evaluate this resume for ATS compatibility.
 
 ${jdCtx}
 Candidate notes: ${whyAts}
 
-Respond ONLY with valid JSON, nothing else:
-{"ats_score":72,"ats_verdict":"One crisp sentence — e.g. Moderate ATS compatibility with key formatting issues"}
+Respond ONLY with valid JSON — no markdown, no explanation, nothing else:
+{"ats_score":72,"ats_verdict":"One crisp sentence verdict here"}
 
 Rules: score is integer 1–100, be honest, do not inflate.`;
+
+  // Claude document API only supports PDF.
+  // For Word/txt files, pass as text content with base64 decoded.
+  const isPdf = (mediaType || "").includes("pdf");
+
+  let contentBlocks;
+  if (isPdf) {
+    contentBlocks = [
+      { type: "document", source: { type: "base64", media_type: "application/pdf", data: resumeBase64 } },
+      { type: "text", text: prompt }
+    ];
+  } else {
+    // For non-PDF: decode base64 to text and pass as plain text
+    let resumeText = "";
+    try {
+      resumeText = Buffer.from(resumeBase64, "base64").toString("utf-8");
+    } catch { resumeText = "[Could not decode resume text]"; }
+    contentBlocks = [
+      { type: "text", text: `RESUME CONTENT:\n${resumeText.substring(0, 4000)}\n\n${prompt}` }
+    ];
+  }
 
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01"
+      },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 120,
-        messages: [{
-          role: "user",
-          content: [
-            { type: "document", source: { type: "base64", media_type: mediaType || "application/pdf", data: resumeBase64 } },
-            { type: "text", text: prompt }
-          ]
-        }]
+        max_tokens: 150,
+        messages: [{ role: "user", content: contentBlocks }]
       })
     });
+
     const data = await r.json();
-    if (!r.ok) return res.status(500).json({ error: "Score generation failed" });
+
+    if (!r.ok) {
+      console.error("Anthropic error:", JSON.stringify(data));
+      return res.status(500).json({
+        error: "Score generation failed. Please try again.",
+        detail: data?.error?.message || "Unknown error"
+      });
+    }
+
     const raw = (data?.content?.[0]?.text || "").trim().replace(/```json|```/g, "").trim();
-    const result = JSON.parse(raw);
-    return res.status(200).json({ success: true, score: result.ats_score, verdict: result.ats_verdict });
+
+    let result;
+    try {
+      result = JSON.parse(raw);
+    } catch {
+      console.error("JSON parse failed. Raw response:", raw);
+      return res.status(500).json({ error: "Score generation failed. Please try again." });
+    }
+
+    if (!result.ats_score || !result.ats_verdict) {
+      console.error("Missing fields in result:", result);
+      return res.status(500).json({ error: "Score generation failed. Please try again." });
+    }
+
+    return res.status(200).json({
+      success: true,
+      score: result.ats_score,
+      verdict: result.ats_verdict
+    });
+
   } catch (err) {
-    console.error("Score error:", err);
+    console.error("Score error:", err?.message || err);
     return res.status(500).json({ error: "Score generation failed. Please try again." });
   }
 }
