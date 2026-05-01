@@ -619,7 +619,7 @@ export default function App() {
         <div style={{...wrap,...pb,display:"flex",flexDirection:"column",gap:"18px"}} className="fade-up">
 
           {/* Score card */}
-          <Card style={{textAlign:"center",padding:"32px 20px",position:"relative",cursor:locked?"pointer":"default",transition:"box-shadow .2s, border-color .2s",boxShadow:locked&&hoverCard?"0 0 0 2px rgba(201,123,42,0.4)":"none"}} onMouseEnter={()=>locked&&setHoverCard(true)} onMouseLeave={()=>setHoverCard(false)} onClick={()=>locked&&scrollToUnlock()}>
+          <Card style={{textAlign:"center",padding:"32px 20px",position:"relative",transition:"box-shadow .2s, border-color .2s",boxShadow:locked&&hoverCard?"0 0 0 2px rgba(201,123,42,0.4)":"none"}} onMouseEnter={()=>locked&&setHoverCard(true)} onMouseLeave={()=>setHoverCard(false)} >
             <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:"18px"}}>
               {locked?"Your ATS Score":"Full Report — Unlocked"}
             </div>
@@ -627,10 +627,10 @@ export default function App() {
             <div style={{marginTop:"14px"}}>
               {locked?(
                 <>
-                  {/* Hover hint */}
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"6px",marginBottom:"14px",padding:"6px 12px",background:"rgba(201,123,42,0.08)",borderRadius:"20px",border:"1px solid rgba(201,123,42,0.2)"}}>
+                  {/* Hover hint — instruction only, not clickable */}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"6px",marginBottom:"14px",padding:"6px 12px",background:"rgba(201,123,42,0.06)",borderRadius:"20px",border:"1px dashed rgba(201,123,42,0.2)",userSelect:"none",pointerEvents:"none"}}>
                     <span style={{fontSize:"12px"}}>👆</span>
-                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.amber,letterSpacing:"0.1em"}}>HOVER OVER THE CIRCLE TO REVEAL YOUR SCORE</span>
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.amber,letterSpacing:"0.1em"}}>Hover over the circle to reveal your score</span>
                   </div>
 
                   {/* Verdict */}
@@ -657,7 +657,7 @@ export default function App() {
 
                   {/* Unlock button */}
                   <button
-                    onClick={(e)=>{ e.stopPropagation(); scrollToUnlock(); }}
+                    onClick={scrollToUnlock}
                     style={{width:"100%",background:C.amber,color:C.cream,border:"none",borderRadius:"12px",padding:"13px",fontSize:"14px",fontWeight:700,cursor:"pointer",transition:"background .2s",display:"block"}}
                     onMouseEnter={e=>e.currentTarget.style.background=C.warm}
                     onMouseLeave={e=>e.currentTarget.style.background=C.amber}>
@@ -677,7 +677,7 @@ export default function App() {
 
           {/* Section bars — always visible, locked bars blurred */}
           {scoreData&&(
-            <Card style={{position:"relative",cursor:locked?"pointer":"default"}} onMouseEnter={()=>locked&&setHoverCard(true)} onMouseLeave={()=>setHoverCard(false)} onClick={()=>locked&&scrollToUnlock()}>
+            <Card style={{position:"relative",}} onMouseEnter={()=>locked&&setHoverCard(true)} onMouseLeave={()=>setHoverCard(false)}>
               <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"16px"}}>Section Overview</div>
               {locked?(
                 // Fake bars showing relative distribution (locked)
