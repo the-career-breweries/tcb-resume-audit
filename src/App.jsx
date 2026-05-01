@@ -627,33 +627,42 @@ export default function App() {
             <div style={{marginTop:"14px"}}>
               {locked?(
                 <>
-                  <p style={{fontSize:"14px",color:scoreColor,fontWeight:600,marginBottom:"8px",lineHeight:1.5}}>{scoreData?.verdict||"Your resume has been evaluated."}</p>
+                  {/* Hover hint */}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"6px",marginBottom:"14px",padding:"6px 12px",background:"rgba(201,123,42,0.08)",borderRadius:"20px",border:"1px solid rgba(201,123,42,0.2)"}}>
+                    <span style={{fontSize:"12px"}}>👆</span>
+                    <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.amber,letterSpacing:"0.1em"}}>HOVER OVER THE CIRCLE TO REVEAL YOUR SCORE</span>
+                  </div>
+
+                  {/* Verdict */}
+                  <p style={{fontSize:"14px",color:scoreColor,fontWeight:600,marginBottom:"16px",lineHeight:1.6,textAlign:"left"}}>{scoreData?.verdict||"Your resume has been evaluated."}</p>
+
+                  {/* Keyword gaps */}
                   {scoreData?.keyword_gaps?.length>0&&(
-                    <div style={{marginTop:"4px"}}>
-                      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.amber,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"8px"}}>Keywords missing from your resume</div>
-                      {scoreData.keyword_gaps.map((kw,i)=>(
-                        <div key={i} onClick={scrollToUnlock} style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"7px",cursor:"pointer",padding:"4px 6px",borderRadius:"8px",transition:"background .15s"}}
-                          onMouseEnter={e=>e.currentTarget.style.background="rgba(201,123,42,0.08)"}
-                          onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                          <span style={{color:"#e57373",flexShrink:0,fontSize:"12px"}}>✕</span>
-                          <span style={{fontSize:"13px",fontWeight:500}}>
-                            <span style={{color:C.ink}}>{kw.split(" ")[0]}</span>
-                            {kw.split(" ").length>1&&<span style={{color:C.border,filter:"blur(4px)",userSelect:"none",marginLeft:"4px"}}>{kw.split(" ").slice(1).join(" ")}</span>}
-                          </span>
-                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,marginLeft:"auto",opacity:0.6,flexShrink:0}}>unlock →</span>
-                        </div>
-                      ))}
-                      <button onClick={scrollToUnlock}
-                        style={{marginTop:"12px",background:"transparent",border:`1.5px solid ${C.amber}`,borderRadius:"10px",padding:"9px 18px",fontSize:"12px",fontWeight:600,color:C.amber,cursor:"pointer",width:"100%",transition:"background .2s"}}
-                        onMouseEnter={e=>{e.currentTarget.style.background="rgba(201,123,42,0.1)";}}
-                        onMouseLeave={e=>{e.currentTarget.style.background="transparent";}}>
-                        Unlock to see all fixes →
-                      </button>
+                    <div style={{background:C.mist,borderRadius:"12px",padding:"14px 16px",marginBottom:"14px",textAlign:"left"}}>
+                      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.amber,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"12px"}}>Keywords missing from your resume</div>
+                      <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
+                        {scoreData.keyword_gaps.map((kw,i)=>(
+                          <div key={i} style={{display:"flex",alignItems:"center",gap:"8px"}}>
+                            <span style={{color:"#e57373",fontSize:"11px",flexShrink:0,fontWeight:700}}>✕</span>
+                            <span style={{fontSize:"13px",fontWeight:600,color:C.ink,flexShrink:0}}>{kw.split(" ")[0]}</span>
+                            {kw.split(" ").length>1&&(
+                              <span style={{fontSize:"13px",color:C.border,filter:"blur(5px)",userSelect:"none",flex:1,overflow:"hidden",whiteSpace:"nowrap"}}>{kw.split(" ").slice(1).join(" ")}</span>
+                            )}
+                            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.amber,flexShrink:0,opacity:0.7}}>fix →</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  {(!scoreData?.keyword_gaps||scoreData.keyword_gaps.length===0)&&(
-                    <p style={{fontSize:"12px",color:C.soft,lineHeight:1.65}}>Unlock the full report to see your score, section breakdown, keyword gaps, and exactly what to fix.</p>
-                  )}
+
+                  {/* Unlock button */}
+                  <button
+                    onClick={(e)=>{ e.stopPropagation(); scrollToUnlock(); }}
+                    style={{width:"100%",background:C.amber,color:C.cream,border:"none",borderRadius:"12px",padding:"13px",fontSize:"14px",fontWeight:700,cursor:"pointer",transition:"background .2s",display:"block"}}
+                    onMouseEnter={e=>e.currentTarget.style.background=C.warm}
+                    onMouseLeave={e=>e.currentTarget.style.background=C.amber}>
+                    Unlock full report →
+                  </button>
                 </>
               ):(
                 <>
