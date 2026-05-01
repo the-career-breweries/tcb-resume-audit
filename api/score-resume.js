@@ -21,9 +21,9 @@ ${jdCtx}
 Candidate notes: ${whyAts}
 
 Respond ONLY with valid JSON — no markdown, no explanation, nothing else:
-{"ats_score":72,"ats_verdict":"One crisp sentence verdict here"}
+{"ats_score":72}
 
-Rules: score is integer 1–100, be honest, do not inflate.`;
+Rules: score is integer 1–100, be honest, do not inflate. No other fields.`;
 
   // Claude document API only supports PDF.
   // For Word/txt files, pass as text content with base64 decoded.
@@ -81,15 +81,14 @@ Rules: score is integer 1–100, be honest, do not inflate.`;
       return res.status(500).json({ error: "Score generation failed. Please try again." });
     }
 
-    if (!result.ats_score || !result.ats_verdict) {
-      console.error("Missing fields in result:", result);
+    if (!result.ats_score) {
+      console.error("Missing score in result:", result);
       return res.status(500).json({ error: "Score generation failed. Please try again." });
     }
 
     return res.status(200).json({
       success: true,
-      score: result.ats_score,
-      verdict: result.ats_verdict
+      score: result.ats_score
     });
 
   } catch (err) {
