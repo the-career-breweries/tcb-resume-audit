@@ -1,4 +1,4 @@
-// Stage 1 — Free. Claude Haiku. Score + one-liner only.
+// Stage 1 — Free. Claude Haiku. Score + verdict + 3 keyword gaps only.
 // Fires BEFORE payment. Never uses Sonnet.
 export const config = { maxDuration: 30 };
 
@@ -21,14 +21,18 @@ ${jdCtx}
 Candidate notes: ${whyAts}
 
 Respond ONLY with valid JSON — no markdown, no explanation, nothing else:
-{"ats_score":72}
+{
+  "ats_score": 72,
+  "ats_verdict": "One crisp honest sentence — e.g. Moderate ATS compatibility with significant keyword gaps that reduce shortlisting probability.",
+  "keyword_gaps": ["Specific keyword 1", "Specific keyword 2", "Specific keyword 3"]
+}
 
-Rules: score is integer 1–100, be honest, do not inflate. No other fields.`;
+Rules:
+- ats_score: integer 1–100, be honest, do not inflate
+- ats_verdict: one sentence, honest, specific — not generic praise
+- keyword_gaps: exactly 3 specific keywords or phrases missing from the resume that ATS systems look for. Be specific — not "leadership" but "cross-functional leadership". If JD provided, pull from JD. If no JD, use industry-standard ATS keywords for the role/domain evident in the resume.`;
 
-  // Claude document API only supports PDF.
-  // For Word/txt files, pass as text content with base64 decoded.
   const isPdf = (mediaType || "").includes("pdf");
-
   let contentBlocks;
   if (isPdf) {
     contentBlocks = [
@@ -36,14 +40,9 @@ Rules: score is integer 1–100, be honest, do not inflate. No other fields.`;
       { type: "text", text: prompt }
     ];
   } else {
-    // For non-PDF: decode base64 to text and pass as plain text
-    let resumeText = "";
-    try {
-      resumeText = Buffer.from(resumeBase64, "base64").toString("utf-8");
-    } catch { resumeText = "[Could not decode resume text]"; }
-    contentBlocks = [
-      { type: "text", text: `RESUME CONTENT:\n${resumeText.substring(0, 4000)}\n\n${prompt}` }
-    ];
+    let txt = "";
+    try { txt = Buffer.from(resumeBase64, "base64").toString("utf-8"); } catch {}
+    contentBlocks = [{ type: "text", text: `RESUME CONTENT:\n${txt.substring(0, 4000)}\n\n${prompt}` }];
   }
 
   try {
@@ -56,7 +55,7 @@ Rules: score is integer 1–100, be honest, do not inflate. No other fields.`;
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 150,
+        max_tokens: 200,
         messages: [{ role: "user", content: contentBlocks }]
       })
     });
@@ -72,23 +71,22 @@ Rules: score is integer 1–100, be honest, do not inflate. No other fields.`;
     }
 
     const raw = (data?.content?.[0]?.text || "").trim().replace(/```json|```/g, "").trim();
-
     let result;
-    try {
-      result = JSON.parse(raw);
-    } catch {
-      console.error("JSON parse failed. Raw response:", raw);
+    try { result = JSON.parse(raw); } catch {
+      console.error("JSON parse failed. Raw:", raw);
       return res.status(500).json({ error: "Score generation failed. Please try again." });
     }
 
     if (!result.ats_score) {
-      console.error("Missing score in result:", result);
+      console.error("Missing score:", result);
       return res.status(500).json({ error: "Score generation failed. Please try again." });
     }
 
     return res.status(200).json({
       success: true,
-      score: result.ats_score
+      score: result.ats_score,
+      verdict: result.ats_verdict || "",
+      keyword_gaps: Array.isArray(result.keyword_gaps) ? result.keyword_gaps.slice(0, 3) : []
     });
 
   } catch (err) {
