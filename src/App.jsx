@@ -158,6 +158,7 @@ export default function App() {
   const isMobile = useIsMobile();
   const topRef   = useRef(null);
   const fileRef  = useRef(null);
+  const unlockRef = useRef(null);
 
   // ── Theme ──
   const [isDark,setIsDark] = useState(()=>{ try{const t=localStorage.getItem("tcb_theme");return t===null?true:t==="dark";}catch{return true;} });
@@ -187,6 +188,7 @@ export default function App() {
 
   // ── Scoring (Stage 1 — Haiku) ──
   const [scoring,setScoring]     = useState(false);
+  const [hoverCard,setHoverCard] = useState(false);
   const [scoreData,setSD]        = useState(saved?.scoreData||null); // {score,verdict,keyword_gaps}
   const [scoreErr,setScoreErr]   = useState("");
 
@@ -213,7 +215,8 @@ export default function App() {
     } else { try{localStorage.removeItem(SESSION_KEY);}catch{} }
   },[step,resumeName,whyAts,satisfied,unsatisfied,selfRating,hasJd,jobTitle,company,jobDesc,email,phone,leadId,scoreData,audit,payState]);
 
-  const goTo = s=>{ if(topRef.current)topRef.current.scrollIntoView({behavior:"smooth"}); setTimeout(()=>setStep(s),80); };
+  const goTo = s=>{ if(topRef.current)topRef.current.scrollIntoView({behavior:"smooth"}); setTimeout(()=>setStep(s),80); }
+  const scrollToUnlock = ()=>{ if(unlockRef.current) unlockRef.current.scrollIntoView({behavior:"smooth",block:"start"}); };;
 
   const clearAll = ()=>{
     try{localStorage.removeItem(SESSION_KEY);}catch{}
@@ -595,7 +598,7 @@ export default function App() {
         <div style={{...wrap,...pb,display:"flex",flexDirection:"column",gap:"18px"}} className="fade-up">
 
           {/* Score card */}
-          <Card style={{textAlign:"center",padding:"32px 20px"}}>
+          <Card style={{textAlign:"center",padding:"32px 20px",position:"relative",cursor:locked?"pointer":"default",transition:"box-shadow .2s"}} onMouseEnter={()=>locked&&setHoverCard(true)} onMouseLeave={()=>setHoverCard(false)} onClick={()=>locked&&scrollToUnlock()}>
             <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:"18px"}}>
               {locked?"Your ATS Score":"Full Report — Unlocked"}
             </div>
@@ -628,11 +631,26 @@ export default function App() {
                 </>
               )}
             </div>
-          </Card>
+          
+              {/* Hover overlay — locked state */}
+              {locked&&hoverCard&&(
+                <div onClick={scrollToUnlock} style={{
+                  position:"absolute",inset:0,borderRadius:"inherit",
+                  background:"rgba(20,16,8,0.82)",backdropFilter:"blur(3px)",
+                  display:"flex",flexDirection:"column",alignItems:"center",
+                  justifyContent:"center",gap:"10px",cursor:"pointer",
+                  animation:"fadeIn 0.18s ease both",zIndex:10,
+                }}>
+                  <div style={{fontSize:"22px"}}>🔓</div>
+                  <div style={{fontFamily:"'Fraunces',serif",fontSize:"16px",fontWeight:400,color:"#FAF3E8",letterSpacing:"0.01em"}}>Unlock full report</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.1em"}}>{hasJd?"₹299":"₹199"} · one-time</div>
+                </div>
+              )}
+              </Card>
 
           {/* Section bars — always visible, locked bars blurred */}
           {scoreData&&(
-            <Card>
+            <Card style={{position:"relative",cursor:locked?"pointer":"default"}} onMouseEnter={()=>locked&&setHoverCard(true)} onMouseLeave={()=>setHoverCard(false)} onClick={()=>locked&&scrollToUnlock()}>
               <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"16px"}}>Section Overview</div>
               {locked?(
                 // Fake bars showing relative distribution (locked)
@@ -715,7 +733,7 @@ export default function App() {
           {/* ── Payment / unlock section ── */}
           {locked&&(
             <div style={{background:isDark?"#1C1410":"#2D1F13",borderRadius:"16px",padding:"24px 22px",display:"flex",flexDirection:"column",gap:"14px"}}>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.1em",textTransform:"uppercase"}}>Unlock your full report</div>
+              <div ref={unlockRef} id="unlock-section" style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.1em",textTransform:"uppercase"}}>Unlock your full report</div>
 
               {hasJd&&(
                 <>
