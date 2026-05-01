@@ -96,23 +96,44 @@ const ScoreGauge = ({score,locked}) => {
   const size  = 116;
   const r     = 46;
   const circ  = 2*Math.PI*r;
-  const dash  = locked ? circ*0.4 : (score/100)*circ;
-  return (
-    <div className="score-in" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px"}}>
+  const dash  = (score/100)*circ;
+  const [spot,setSpot] = useState(null);
+
+  const GaugeInner = ({blurred}) => (
+    <div style={{filter:blurred?"blur(7px)":"none",pointerEvents:"none"}}>
       <svg width={size} height={size} style={{transform:"rotate(-90deg)"}}>
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={C.border} strokeWidth="8"/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={locked?C.border:color} strokeWidth="8"
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="8"
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
           style={{transition:"stroke-dasharray 1.2s ease"}}/>
       </svg>
-      <div style={{position:"relative",marginTop:`-${size+14}px`,height:size,width:size,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-        {locked
-          ? <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"11px",color:C.soft,letterSpacing:"0.08em",textTransform:"uppercase",userSelect:"none"}}>Locked</div>
-          : <>
-              <div style={{fontFamily:"'Fraunces',serif",fontSize:"30px",fontWeight:400,color,lineHeight:1}}>{score}</div>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.soft,letterSpacing:"0.06em",marginTop:"2px"}}>/100</div>
-            </>
-        }
+      <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+        <div style={{fontFamily:"'Fraunces',serif",fontSize:"30px",fontWeight:400,color,lineHeight:1}}>{score}</div>
+        <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.soft,letterSpacing:"0.06em",marginTop:"2px"}}>/100</div>
+      </div>
+    </div>
+  );
+
+  if (!locked) return (
+    <div style={{position:"relative",width:size,height:size}}>
+      <GaugeInner blurred={false}/>
+    </div>
+  );
+
+  return (
+    <div className="score-in" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px"}}>
+      <div
+        style={{position:"relative",width:size,height:size,cursor:"crosshair"}}
+        onMouseMove={e=>{const r2=e.currentTarget.getBoundingClientRect();setSpot({x:e.clientX-r2.left,y:e.clientY-r2.top});}}
+        onMouseLeave={()=>setSpot(null)}>
+        {/* Blurred layer — always shown */}
+        <GaugeInner blurred={true}/>
+        {/* Spotlight unblur layer — follows cursor */}
+        {spot&&(
+          <div style={{position:"absolute",inset:0,clipPath:`circle(28px at ${spot.x}px ${spot.y}px)`,pointerEvents:"none"}}>
+            <GaugeInner blurred={false}/>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -598,7 +619,7 @@ export default function App() {
         <div style={{...wrap,...pb,display:"flex",flexDirection:"column",gap:"18px"}} className="fade-up">
 
           {/* Score card */}
-          <Card style={{textAlign:"center",padding:"32px 20px",position:"relative",cursor:locked?"pointer":"default",transition:"box-shadow .2s"}} onMouseEnter={()=>locked&&setHoverCard(true)} onMouseLeave={()=>setHoverCard(false)} onClick={()=>locked&&scrollToUnlock()}>
+          <Card style={{textAlign:"center",padding:"32px 20px",position:"relative",cursor:locked?"pointer":"default",transition:"box-shadow .2s, border-color .2s",boxShadow:locked&&hoverCard?"0 0 0 2px rgba(201,123,42,0.4)":"none"}} onMouseEnter={()=>locked&&setHoverCard(true)} onMouseLeave={()=>setHoverCard(false)} onClick={()=>locked&&scrollToUnlock()}>
             <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:"18px"}}>
               {locked?"Your ATS Score":"Full Report — Unlocked"}
             </div>
@@ -615,8 +636,11 @@ export default function App() {
                           onMouseEnter={e=>e.currentTarget.style.background="rgba(201,123,42,0.08)"}
                           onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                           <span style={{color:"#e57373",flexShrink:0,fontSize:"12px"}}>✕</span>
-                          <span style={{fontSize:"13px",color:C.ink,fontWeight:500}}>{kw}</span>
-                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,marginLeft:"auto",opacity:0.5}}>unlock to fix →</span>
+                          <span style={{fontSize:"13px",fontWeight:500}}>
+                            <span style={{color:C.ink}}>{kw.split(" ")[0]}</span>
+                            {kw.split(" ").length>1&&<span style={{color:C.border,filter:"blur(4px)",userSelect:"none",marginLeft:"4px"}}>{kw.split(" ").slice(1).join(" ")}</span>}
+                          </span>
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,marginLeft:"auto",opacity:0.6,flexShrink:0}}>unlock →</span>
                         </div>
                       ))}
                       <button onClick={scrollToUnlock}
@@ -639,20 +663,7 @@ export default function App() {
               )}
             </div>
           
-              {/* Hover overlay — locked state */}
-              {locked&&hoverCard&&(
-                <div onClick={scrollToUnlock} style={{
-                  position:"absolute",inset:0,borderRadius:"inherit",
-                  background:"rgba(20,16,8,0.82)",backdropFilter:"blur(3px)",
-                  display:"flex",flexDirection:"column",alignItems:"center",
-                  justifyContent:"center",gap:"10px",cursor:"pointer",
-                  animation:"fadeIn 0.18s ease both",zIndex:10,
-                }}>
-                  <div style={{fontSize:"22px"}}>🔓</div>
-                  <div style={{fontFamily:"'Fraunces',serif",fontSize:"16px",fontWeight:400,color:"#FAF3E8",letterSpacing:"0.01em"}}>Unlock full report</div>
-                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.1em"}}>{hasJd?"₹299":"₹199"} · one-time</div>
-                </div>
-              )}
+
               </Card>
 
           {/* Section bars — always visible, locked bars blurred */}
