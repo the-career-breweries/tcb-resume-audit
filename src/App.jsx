@@ -106,8 +106,13 @@ const ScoreGauge = ({score,locked}) => {
           style={{transition:"stroke-dasharray 1.2s ease"}}/>
       </svg>
       <div style={{position:"relative",marginTop:`-${size+14}px`,height:size,width:size,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-        <div style={{fontFamily:"'Fraunces',serif",fontSize:"30px",fontWeight:400,color,lineHeight:1}}>{score}</div>
-        {!locked&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.soft,letterSpacing:"0.06em",marginTop:"2px"}}>/100</div>}
+        {locked
+          ? <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"11px",color:C.soft,letterSpacing:"0.08em",textTransform:"uppercase",userSelect:"none"}}>Locked</div>
+          : <>
+              <div style={{fontFamily:"'Fraunces',serif",fontSize:"30px",fontWeight:400,color,lineHeight:1}}>{score}</div>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.soft,letterSpacing:"0.06em",marginTop:"2px"}}>/100</div>
+            </>
+        }
       </div>
     </div>
   );
@@ -432,7 +437,7 @@ export default function App() {
       <div style={wrap}><Header/></div>
       <div style={{...wrap,...pb,display:"flex",flexDirection:"column",gap:"20px"}} className="fade-up">
         <div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"6px"}}>01 / 03 — Your Resume</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"6px"}}>— Your Resume</div>
           <h2 style={{fontFamily:"'Fraunces',serif",fontSize:isMobile?"22px":"26px",fontWeight:400,color:C.dark,lineHeight:1.25,marginBottom:"6px"}}>Tell us about your resume.</h2>
           <p style={{fontSize:"13px",color:C.soft,lineHeight:1.65}}>Upload your resume and answer four questions. Be honest — it makes the audit sharper.</p>
         </div>
@@ -501,7 +506,7 @@ export default function App() {
       <div style={wrap}><Header/></div>
       <div style={{...wrap,...pb,display:"flex",flexDirection:"column",gap:"20px"}} className="fade-up">
         <div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"6px"}}>02 / 03 — Context</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"6px"}}>— Context</div>
           <h2 style={{fontFamily:"'Fraunces',serif",fontSize:isMobile?"22px":"26px",fontWeight:400,color:C.dark,lineHeight:1.25,marginBottom:"6px"}}>Are you evaluating against a specific role?</h2>
           <p style={{fontSize:"13px",color:C.soft,lineHeight:1.65,maxWidth:"460px"}}>If yes, we'll calibrate every finding to that JD. If no, we'll evaluate against general ATS best practices.</p>
         </div>
@@ -553,7 +558,7 @@ export default function App() {
       <div style={wrap}><Header/></div>
       <div style={{...wrap,...pb,display:"flex",flexDirection:"column",gap:"20px"}} className="fade-up">
         <div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"6px"}}>03 / 03 — Ready</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"6px"}}>— Ready</div>
           <h2 style={{fontFamily:"'Fraunces',serif",fontSize:isMobile?"22px":"26px",fontWeight:400,color:C.dark,lineHeight:1.25,marginBottom:"6px"}}>Your audit is ready to run.</h2>
           <p style={{fontSize:"13px",color:C.soft,lineHeight:1.65,maxWidth:"460px"}}>We'll analyse your resume{hasJd?" against the JD you provided":" against ATS best practices"} and return your score. Free.</p>
         </div>
@@ -598,14 +603,14 @@ export default function App() {
             <div style={{marginTop:"14px"}}>
               {locked?(
                 <>
-                  <p style={{fontSize:"14px",color:C.ink,fontWeight:600,marginBottom:"6px"}}>Your score is ready.</p>
+                  <p style={{fontSize:"14px",color:scoreColor,fontWeight:600,marginBottom:"6px"}}>{scoreData?.verdict||"Score ready."}</p>
                   <p style={{fontSize:"12px",color:C.soft,lineHeight:1.65}}>
                     {hasJd?"Unlock the full report — section breakdown, keyword gaps, JD match, and exactly what to fix.":"Unlock the full report — formatting issues, keyword density, structure findings, and what to fix."}
                   </p>
                 </>
               ):(
                 <>
-                  <p style={{fontSize:"15px",fontWeight:600,color:scoreColor,marginBottom:"6px"}}>{audit?.ats_verdict}</p>
+                  <p style={{fontSize:"15px",fontWeight:600,color:scoreColor,marginBottom:"6px"}}>{(audit?.ats_verdict||"").split(".")[0]+"."}</p>
                   <p style={{fontSize:"12px",color:C.soft,lineHeight:1.65}}>{audit?.summary}</p>
                 </>
               )}
