@@ -187,7 +187,7 @@ export default function App() {
 
   // ── Scoring (Stage 1 — Haiku) ──
   const [scoring,setScoring]     = useState(false);
-  const [scoreData,setSD]        = useState(saved?.scoreData||null); // {score,verdict}
+  const [scoreData,setSD]        = useState(saved?.scoreData||null); // {score,verdict,keyword_gaps}
   const [scoreErr,setScoreErr]   = useState("");
 
   // ── Full report (Stage 2 — Sonnet, fires after payment) ──
@@ -247,7 +247,7 @@ export default function App() {
       const r=await fetch("/api/score-resume",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeBase64,mediaType,whyAts,hasJd,jobTitle,company,jobDescription:jobDesc})});
       const d=await r.json();
       if(!r.ok||!d.success){setScoreErr(d.error||"Could not generate score. Please try again.");setScoring(false);return;}
-      setSD({score:d.score,verdict:d.verdict});
+      setSD({score:d.score,verdict:d.verdict,keyword_gaps:d.keyword_gaps||[]});
       goTo(4);
     }catch{ setScoreErr("Something went wrong. Please try again."); }
     setScoring(false);
@@ -603,10 +603,23 @@ export default function App() {
             <div style={{marginTop:"14px"}}>
               {locked?(
                 <>
-                  <p style={{fontSize:"14px",color:C.soft,fontWeight:500,marginBottom:"6px"}}>Your resume has been evaluated.</p>
-                  <p style={{fontSize:"12px",color:C.soft,lineHeight:1.65}}>
-                    Unlock the full report to see your score, verdict, section breakdown, and exactly what to fix.
-                  </p>
+                  <p style={{fontSize:"14px",color:scoreColor,fontWeight:600,marginBottom:"8px",lineHeight:1.5}}>{scoreData?.verdict||"Your resume has been evaluated."}</p>
+                  {scoreData?.keyword_gaps?.length>0&&(
+                    <div style={{marginTop:"4px"}}>
+                      <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.amber,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"8px"}}>Keywords missing from your resume</div>
+                      {scoreData.keyword_gaps.map((kw,i)=>(
+                        <div key={i} style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"7px"}}>
+                          <span style={{color:"#e57373",flexShrink:0,fontSize:"12px"}}>✕</span>
+                          <span style={{fontSize:"13px",color:C.ink,fontWeight:500}}>{kw}</span>
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.border,marginLeft:"auto",filter:"blur(4px)",userSelect:"none"}}>fix →</span>
+                        </div>
+                      ))}
+                      <p style={{fontSize:"11px",color:C.soft,marginTop:"10px",lineHeight:1.6,fontStyle:"italic"}}>Unlock the full report to see all fixes, section scores, and what to do next.</p>
+                    </div>
+                  )}
+                  {(!scoreData?.keyword_gaps||scoreData.keyword_gaps.length===0)&&(
+                    <p style={{fontSize:"12px",color:C.soft,lineHeight:1.65}}>Unlock the full report to see your score, section breakdown, keyword gaps, and exactly what to fix.</p>
+                  )}
                 </>
               ):(
                 <>
