@@ -55,7 +55,7 @@ const Ghost = ({children,onClick}) => (
     {children}
   </button>
 );
-const Card = ({children,style}) => <div style={{background:C.mist,border:`1.5px solid ${C.border}`,borderRadius:"16px",padding:"22px 24px",...style}}>{children}</div>;
+const Card = ({children,style,...props}) => <div style={{background:C.mist,border:`1.5px solid ${C.border}`,borderRadius:"16px",padding:"22px 24px",...style}} {...props}>{children}</div>;
 const Pulse = ({msg}) => (
   <div style={{display:"flex",alignItems:"center",gap:"10px",padding:"10px 0"}}>
     <div style={{width:"7px",height:"7px",borderRadius:"50%",background:C.amber,animation:"pulse 1.4s ease infinite",flexShrink:0}}/>
@@ -126,7 +126,7 @@ const SectionBar = ({label,score,status,locked}) => {
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"5px"}}>
         <span style={{fontSize:"13px",color:C.ink,fontWeight:500,textTransform:"capitalize"}}>{label}</span>
         {locked
-          ? <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.border,letterSpacing:"0.06em",filter:"blur(5px)",userSelect:"none"}}>Locked</span>
+          ? <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.border,letterSpacing:"0.06em",filter:"blur(5px)",userSelect:"none",pointerEvents:"none"}}>Locked</span>
           : <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
               <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color,letterSpacing:"0.06em"}}>
                 {status==="good"?"Good":status==="average"?"Average":"Needs work"}
@@ -611,13 +611,20 @@ export default function App() {
                     <div style={{marginTop:"4px"}}>
                       <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.amber,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:"8px"}}>Keywords missing from your resume</div>
                       {scoreData.keyword_gaps.map((kw,i)=>(
-                        <div key={i} style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"7px"}}>
+                        <div key={i} onClick={scrollToUnlock} style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"7px",cursor:"pointer",padding:"4px 6px",borderRadius:"8px",transition:"background .15s"}}
+                          onMouseEnter={e=>e.currentTarget.style.background="rgba(201,123,42,0.08)"}
+                          onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                           <span style={{color:"#e57373",flexShrink:0,fontSize:"12px"}}>✕</span>
                           <span style={{fontSize:"13px",color:C.ink,fontWeight:500}}>{kw}</span>
-                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.border,marginLeft:"auto",filter:"blur(4px)",userSelect:"none"}}>fix →</span>
+                          <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,marginLeft:"auto",opacity:0.5}}>unlock to fix →</span>
                         </div>
                       ))}
-                      <p style={{fontSize:"11px",color:C.soft,marginTop:"10px",lineHeight:1.6,fontStyle:"italic"}}>Unlock the full report to see all fixes, section scores, and what to do next.</p>
+                      <button onClick={scrollToUnlock}
+                        style={{marginTop:"12px",background:"transparent",border:`1.5px solid ${C.amber}`,borderRadius:"10px",padding:"9px 18px",fontSize:"12px",fontWeight:600,color:C.amber,cursor:"pointer",width:"100%",transition:"background .2s"}}
+                        onMouseEnter={e=>{e.currentTarget.style.background="rgba(201,123,42,0.1)";}}
+                        onMouseLeave={e=>{e.currentTarget.style.background="transparent";}}>
+                        Unlock to see all fixes →
+                      </button>
                     </div>
                   )}
                   {(!scoreData?.keyword_gaps||scoreData.keyword_gaps.length===0)&&(
