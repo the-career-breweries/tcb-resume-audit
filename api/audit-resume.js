@@ -52,15 +52,24 @@ Status: "good"=80+, "average"=60-79, "needs_work"=below 60. ATS score 1-100. Be 
         max_tokens: 2000,
         messages: [{
           role: "user",
-          content: [
-            { type: "document", source: { type: "base64", media_type: mediaType || "application/pdf", data: resumeBase64 } },
-            { type: "text", text: prompt }
-          ]
+          content: (()=>{
+            const isPdf = (mediaType||"").includes("pdf");
+            if(isPdf){
+              return [
+                { type: "document", source: { type: "base64", media_type: "application/pdf", data: resumeBase64 } },
+                { type: "text", text: prompt }
+              ];
+            } else {
+              let txt="";
+              try{ txt=Buffer.from(resumeBase64,"base64").toString("utf-8"); }catch{}
+              return [{ type: "text", text: `RESUME CONTENT:\n${txt.substring(0,6000)}\n\n${prompt}` }];
+            }
+          })()
         }]
       })
     });
     const data = await response.json();
-    if (!response.ok) return res.status(500).json({ error: "Audit failed", detail: data });
+    if (!response.ok) { console.error("Anthropic error:", JSON.stringify(data)); return res.status(500).json({ error: "Audit failed", detail: data?.error?.message || "Unknown" }); }
     const raw = (data?.content?.[0]?.text || "").trim().replace(/```json|```/g, "").trim();
     const audit = JSON.parse(raw);
     return res.status(200).json({ success: true, audit });
