@@ -96,12 +96,12 @@ const ScoreGauge = ({score,locked}) => {
   const size  = 116;
   const r     = 46;
   const circ  = 2*Math.PI*r;
-  const dash  = (score/100)*circ;
+  const dash  = locked ? circ*0.4 : (score/100)*circ;
   return (
     <div className="score-in" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"6px"}}>
       <svg width={size} height={size} style={{transform:"rotate(-90deg)"}}>
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={C.border} strokeWidth="8"/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="8"
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={locked?C.border:color} strokeWidth="8"
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
           style={{transition:"stroke-dasharray 1.2s ease"}}/>
       </svg>
@@ -603,9 +603,9 @@ export default function App() {
             <div style={{marginTop:"14px"}}>
               {locked?(
                 <>
-                  <p style={{fontSize:"14px",color:scoreColor,fontWeight:600,marginBottom:"6px"}}>{scoreData?.verdict||"Score ready."}</p>
+                  <p style={{fontSize:"14px",color:C.soft,fontWeight:500,marginBottom:"6px"}}>Your resume has been evaluated.</p>
                   <p style={{fontSize:"12px",color:C.soft,lineHeight:1.65}}>
-                    {hasJd?"Unlock the full report — section breakdown, keyword gaps, JD match, and exactly what to fix.":"Unlock the full report — formatting issues, keyword density, structure findings, and what to fix."}
+                    Unlock the full report to see your score, verdict, section breakdown, and exactly what to fix.
                   </p>
                 </>
               ):(
