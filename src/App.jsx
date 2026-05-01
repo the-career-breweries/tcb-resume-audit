@@ -164,11 +164,16 @@ const SectionBar = ({label,score,status,locked}) => {
 };
 
 // ── Blur overlay block ────────────────────────────────────────────────────────
-const Blurred = ({children}) => (
+const Blurred = ({children,onUnlock}) => (
   <div style={{position:"relative",borderRadius:"12px",overflow:"hidden",userSelect:"none"}}>
     <div style={{filter:"blur(5px)",opacity:.45,pointerEvents:"none"}}>{children}</div>
     <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{background:C.dark,border:`1.5px solid ${C.amber}`,borderRadius:"8px",padding:"6px 16px",fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.amber,letterSpacing:"0.1em",textTransform:"uppercase"}}>Unlock to reveal</div>
+      <button onClick={onUnlock}
+        style={{background:C.amber,border:"none",borderRadius:"8px",padding:"8px 18px",fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:C.cream,letterSpacing:"0.1em",textTransform:"uppercase",cursor:"pointer",fontWeight:700,boxShadow:"0 4px 14px rgba(201,123,42,0.35)",transition:"background .15s"}}
+        onMouseEnter={e=>e.currentTarget.style.background=C.warm}
+        onMouseLeave={e=>e.currentTarget.style.background=C.amber}>
+        Unlock to reveal →
+      </button>
     </div>
   </div>
 );
@@ -648,7 +653,12 @@ export default function App() {
                             {kw.split(" ").length>1&&(
                               <span style={{fontSize:"13px",color:C.border,filter:"blur(5px)",userSelect:"none",flex:1,overflow:"hidden",whiteSpace:"nowrap"}}>{kw.split(" ").slice(1).join(" ")}</span>
                             )}
-                            <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.amber,flexShrink:0,opacity:0.7}}>fix →</span>
+                            <button onClick={scrollToUnlock}
+                            style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"9px",color:C.cream,background:C.amber,border:"none",borderRadius:"6px",padding:"3px 8px",flexShrink:0,cursor:"pointer",transition:"background .15s",fontWeight:600}}
+                            onMouseEnter={e=>e.currentTarget.style.background=C.warm}
+                            onMouseLeave={e=>e.currentTarget.style.background=C.amber}>
+                            fix →
+                          </button>
                           </div>
                         ))}
                       </div>
@@ -695,7 +705,7 @@ export default function App() {
           {/* Blurred details when locked */}
           {locked&&(
             <>
-              <Blurred>
+              <Blurred onUnlock={scrollToUnlock}>
                 <Card>
                   <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:"#e57373",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"12px"}}>Top Issues</div>
                   {["Issue one would appear here","Issue two would appear here","Issue three would appear here"].map((i,n)=>(
@@ -703,7 +713,7 @@ export default function App() {
                   ))}
                 </Card>
               </Blurred>
-              <Blurred>
+              <Blurred onUnlock={scrollToUnlock}>
                 <Card>
                   <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"10px",color:"#4caf50",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"12px"}}>Quick Wins</div>
                   {["Quick win one","Quick win two","Quick win three"].map((w,n)=>(
