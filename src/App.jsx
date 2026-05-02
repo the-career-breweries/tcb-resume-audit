@@ -7,7 +7,9 @@ let C = { ...DARK };
 const globalStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; transition: background 0.3s ease; }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; transition: background 0.3s ease; overflow-x: hidden; }
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  input, textarea, select, button { touch-action: manipulation; }
   @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
   @keyframes pulse  { 0%,100%{opacity:.4;transform:scale(.95);}50%{opacity:1;transform:scale(1.05);} }
@@ -16,7 +18,7 @@ const globalStyles = `
   .fade-in  { animation: fadeIn  0.3s ease both; }
   .score-in { animation: scoreIn 0.5s cubic-bezier(0.22,1,0.36,1) both; }
   textarea, input[type=text], input[type=email], input[type=tel] {
-    font-family:'Plus Jakarta Sans',sans-serif; font-size:15px;
+    font-family:'Plus Jakarta Sans',sans-serif; font-size:16px;
     background:var(--mist); border:1.5px solid var(--border);
     color:var(--ink); border-radius:12px; padding:13px 16px; width:100%; outline:none;
     transition:border-color .2s,box-shadow .2s;
@@ -390,7 +392,7 @@ export default function App() {
   const wrap  = {maxWidth:"680px",margin:"0 auto",padding:isMobile?"0 16px":"0 24px"};
   const pb    = {paddingTop:"28px",paddingBottom:isMobile?"100px":"48px"};
   const mBar  = (onBack,onNext,label,disabled)=> isMobile?(
-    <div style={{position:"fixed",bottom:0,left:0,right:0,padding:"12px 16px",background:themeColors.bg,borderTop:`1px solid ${C.border}`,zIndex:100,display:"flex",gap:"10px"}}>
+    <div style={{position:"fixed",bottom:0,left:0,right:0,padding:"12px 16px env(safe-area-inset-bottom,0) 16px",background:themeColors.bg,borderTop:`1px solid ${C.border}`,zIndex:100,display:"flex",gap:"10px"}}>
       {onBack&&<button onClick={onBack} style={{background:"transparent",color:C.soft,border:`1.5px solid ${C.border}`,borderRadius:"12px",padding:"13px 16px",fontSize:"15px",cursor:"pointer",flexShrink:0}}>←</button>}
       <button onClick={onNext} disabled={disabled} style={{flex:1,background:disabled?C.border:C.amber,color:disabled?C.soft:C.cream,border:"none",borderRadius:"12px",padding:"13px",fontSize:"15px",fontWeight:600,cursor:disabled?"not-allowed":"pointer"}}>{label}</button>
     </div>
